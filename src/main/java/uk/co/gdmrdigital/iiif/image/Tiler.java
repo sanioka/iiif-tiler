@@ -86,7 +86,18 @@ public class Tiler {
                     int tiledWidthCalc = _image.getTileWidth();
                     if (tileX + scaledTileWidth > _image.getWidth()) {
                         scaledTileWidth = _image.getWidth() - tileX;
-                        tiledWidthCalc = scaledTileWidth / scale;
+
+                        // Fixed tile rendering issue with OpenSeadragon,
+                        // last right column of tiles shown like blank tiles.
+
+                        // Before 594px / 4 == 148px
+                        // tiledWidthCalc = scaledTileWidth / scale;
+
+                        // After 594.0px / 4.0 == 149px
+                        tiledWidthCalc = Math.round((float)scaledTileWidth / (float)scale);
+
+                        // Its very important, because 148(149) is tile subfolder name.
+                        // And OpenSeadragon receive 404 error instead of tiles.
                     }
                     int scaledTileHeight = _image.getTileHeight() * scale;
                     if (tileY + scaledTileHeight > _image.getHeight()) {
@@ -174,6 +185,6 @@ public class Tiler {
 
         String tVersion = InfoJson.VERSION211;
         //String tVersion = InfoJson.VERSION3;
-        createImages(tInputFiles, tOutputDir, tZoom, tMaxFileNo, tVersion);
+        createImages(tInputFiles, tOutputDir, tVersion);
     }
 }
