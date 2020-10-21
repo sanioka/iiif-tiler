@@ -53,13 +53,13 @@ public class Tiler {
         // Generate sizes
         for (Point tSize : _image.getSizes()) {
             BufferedImage tScaledImage = new BufferedImage(tSize.x, tSize.y, BufferedImage.TYPE_INT_RGB);
-			Graphics2D tGraphics = tScaledImage.createGraphics();
-			tGraphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-			tGraphics.drawImage(_image.getImage(), 0, 0, tSize.x, tSize.y, null);
-            
+            Graphics2D tGraphics = tScaledImage.createGraphics();
+            tGraphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            tGraphics.drawImage(_image.getImage(), 0, 0, tSize.x, tSize.y, null);
+
             String tSizeStr = tSize.x + ",";
             if (tSize.x == _image.getWidth() && tSize.y == _image.getHeight()) {
-                if (_version == InfoJson.VERSION3) { 
+                if (_version == InfoJson.VERSION3) {
                     tSizeStr = "max";
                 } else {
                     tSizeStr = "full";
@@ -89,12 +89,14 @@ public class Tiler {
 
                         // Fixed tile rendering issue with OpenSeadragon,
                         // last right column of tiles shown like blank tiles.
+                        // TODO: Recheck issue with workaround :/
 
                         // Before 594px / 4 == 148px
                         // tiledWidthCalc = scaledTileWidth / scale;
 
-                        // After 594.0px / 4.0 == 149px
-                        tiledWidthCalc = Math.round((float)scaledTileWidth / (float)scale);
+                        // After: 594.0px / 4.0 == 149px
+                        // After: 1778px / 8 == 223px
+                        tiledWidthCalc = (int) Math.ceil((float) scaledTileWidth / (float) scale);
 
                         // Its very important, because 148(149) is tile subfolder name.
                         // And OpenSeadragon receive 404 error instead of tiles.
@@ -121,70 +123,107 @@ public class Tiler {
         }
     }
 
-    public static void createImages(final List<File> pFiles, final File pOutputDir, final int pZoomLevel, final int pMaxFileNo, final String pVersion) throws IOException {
+    public static void createImages(final List<File> pFiles, final File pOutputDir, final String pVersion) throws IOException {
         for (File tInputFile : pFiles) {
             IIIFImage tImage = new IIIFImage(tInputFile);
 
-            ImageInfo tImageInfo = new ImageInfo(tImage);
-            tImageInfo.setZoomLevel(pZoomLevel);
-            if (pMaxFileNo != -1) {
-                tImageInfo.fitToMaxFileNo(pMaxFileNo);
-            }    
+            ImageInfo tImageInfo = new ImageInfo(tImage, 256, 256, 4);
 
             Tiler tTiler = new Tiler(tImageInfo, pVersion);
             tTiler.generateTiles(pOutputDir);
 
             InfoJson tInfo = new InfoJson(tImageInfo, "http://localhost:8887/iiif/");
             Map tInfoJson = tInfo.toJson(pVersion);
-            
+
             JsonUtils.writePrettyPrint(new FileWriter(new File(tTiler.getOutputDir(pOutputDir),"info.json")), tInfoJson);
             System.out.println("Converted " + tInputFile.getPath() + " to " + tTiler.getOutputDir(pOutputDir).getPath());
         }
     }
 
+    /**
+     * Main Entrance
+     *
+     * @param pArgs
+     * @throws IOException
+     */
     public static void main(final String[] pArgs) throws IOException {
-        if (pArgs.length > 2) {
-            System.out.println("Usage:\n\tjava uk.org.gdmrdigital.iiif.image.Tiler [image] [zoom levels]");
-            System.out.println("Images can be in the following format:");
-            String[] imageFormats = ImageIO.getReaderFormatNames();
-            for (int i = 0; i < imageFormats.length; i++) {
-                System.out.println(" * " + imageFormats[i]);
-            }
-            System.exit(-1);
-        }
-        List<File> tInputFiles = new ArrayList<File>();
-        if (pArgs.length > 0) {
-            tInputFiles.add(new File(pArgs[0]));
-        } else {
-            // Look for supported files in the current directory
-            File tCurrentDir = new File(System.getProperty("user.dir"));
-            File[] tFiles = tCurrentDir.listFiles(new FilenameFilter() {
-                public boolean accept(final File dir, final String name) {
-                    String[] imageFormats = ImageIO.getReaderFormatNames();
-                    for (int i = 0; i < imageFormats.length; i++) {
-                        if (name.endsWith(imageFormats[i])) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-            });
-            for (int i = 0; i < tFiles.length; i++) {
-                tInputFiles.add(tFiles[i]);
-            }
-        }
-        int tZoom = 4;
-        int tMaxFileNo = -1;
-        if (pArgs.length == 2) {
-            tZoom = Integer.parseInt(pArgs[1]);
-        } else {
-            tMaxFileNo = 100;
-        }
 
-        File tOutputDir = new File("iiif");
+        final String INPUT_DIR = "input";
+        final String OUTPUT_DIR = "iiif";
 
         String tVersion = InfoJson.VERSION211;
         //String tVersion = InfoJson.VERSION3;
+
+        List<File> tInputFiles = new ArrayList<File>();
+
+        // String inputFile = "images/book-page1.jpg";
+        // tInputFiles.add(new File(inputFile));
+
+        // Look for supported files in the INPUT_DIR directory
+        File tCurrentDir = new File(System.getProperty("user.dir") + File.separator + INPUT_DIR);
+        File[] tFiles = tCurrentDir.listFiles(new FilenameFilter() {
+            public boolean accept(final File dir, final String name) {
+                String[] imageFormats = ImageIO.getReaderFormatNames();
+                for (int i = 0; i < imageFormats.length; i++) {
+                    if (name.endsWith(imageFormats[i])) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+        for (int i = 0; i < tFiles.length; i++) {
+            tInputFiles.add(tFiles[i]);
+        }
+
+        File tOutputDir = new File(OUTPUT_DIR);
+
         createImages(tInputFiles, tOutputDir, tVersion);
     }
+
+//    public static void main(final String[] pArgs) throws IOException {
+//        if (pArgs.length > 2) {
+//            System.out.println("Usage:\n\tjava uk.org.gdmrdigital.iiif.image.Tiler [image] [zoom levels]");
+//            System.out.println("Images can be in the following format:");
+//            String[] imageFormats = ImageIO.getReaderFormatNames();
+//            for (int i = 0; i < imageFormats.length; i++) {
+//                System.out.println(" * " + imageFormats[i]);
+//            }
+//            System.exit(-1);
+//        }
+//        List<File> tInputFiles = new ArrayList<File>();
+//        if (pArgs.length > 0) {
+//            tInputFiles.add(new File(pArgs[0]));
+//        } else {
+//            // Look for supported files in the current directory
+//            File tCurrentDir = new File(System.getProperty("user.dir"));
+//            File[] tFiles = tCurrentDir.listFiles(new FilenameFilter() {
+//                public boolean accept(final File dir, final String name) {
+//                    String[] imageFormats = ImageIO.getReaderFormatNames();
+//                    for (int i = 0; i < imageFormats.length; i++) {
+//                        if (name.endsWith(imageFormats[i])) {
+//                            return true;
+//                        }
+//                    }
+//                    return false;
+//                }
+//            });
+//            for (int i = 0; i < tFiles.length; i++) {
+//                tInputFiles.add(tFiles[i]);
+//            }
+//        }
+//        int tZoom = 4;
+//        int tMaxFileNo = -1;
+//        if (pArgs.length == 2) {
+//            tZoom = Integer.parseInt(pArgs[1]);
+//        } else {
+//            tMaxFileNo = 100;
+//        }
+//
+//        File tOutputDir = new File("iiif");
+//
+//        String tVersion = InfoJson.VERSION211;
+//        //String tVersion = InfoJson.VERSION3;
+//        createImages(tInputFiles, tOutputDir, tVersion);
+//    }
 }

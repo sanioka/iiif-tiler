@@ -30,7 +30,7 @@ public class TilerTest {
     public TemporaryFolder _tmp = new TemporaryFolder();
     private static final Logger _logger = LogManager.getLogger();
     /**
-     * 
+     *
      */
     @Test
     public void testVersion2() throws IOException {
@@ -39,7 +39,7 @@ public class TilerTest {
 
         IIIFImage tImage = new IIIFImage(tImageFile);
 
-        ImageInfo tImageInfo = new ImageInfo(tImage);
+        ImageInfo tImageInfo = new ImageInfo(tImage, 1024, 1024, 2);
         String tVersion = InfoJson.VERSION211;
 
         Tiler tTiler = new Tiler(tImageInfo, tVersion);
@@ -58,7 +58,7 @@ public class TilerTest {
 
         IIIFImage tImage = new IIIFImage(tImageFile);
 
-        ImageInfo tImageInfo = new ImageInfo(tImage);
+        ImageInfo tImageInfo = new ImageInfo(tImage, 1024, 1024, 2);
         String tVersion = InfoJson.VERSION3;
 
         Tiler tTiler = new Tiler(tImageInfo, tVersion);
@@ -87,7 +87,7 @@ public class TilerTest {
         tTiler.generateTiles(tOutputDir);
 
         List<String> tFiles = this.countFiles(tOutputDir);
-        //printLevels(tFiles); 
+        printLevels(tFiles);
         int tActualCount = tFiles.size() + 1; // add info.json
 
         assertEquals("Predicted number of files is different to the actual.", tPredictedCount, tActualCount);
@@ -108,7 +108,7 @@ public class TilerTest {
         Tiler tTiler = new Tiler(tImageInfo, tVersion);
         tTiler.generateTiles(tOutputDir);
         List<String> tFiles = this.countFiles(tOutputDir);
-       // printLevels(tFiles); 
+        printLevels(tFiles);
         int tActualCount = tFiles.size() + 1; // add info.json
 
         assertEquals("Predicted number of files is different to the actual.", tPredictedCount, tActualCount);
@@ -128,69 +128,69 @@ public class TilerTest {
         Tiler tTiler = new Tiler(tImageInfo, tVersion);
         tTiler.generateTiles(tOutputDir);
         List<String> tFiles = this.countFiles(tOutputDir);
-       // printLevels(tFiles); 
+        printLevels(tFiles);
         int tActualCount = tFiles.size() + 1; // add info.json
         _logger.debug("Predicted " + tPredictedCount + " actual " + tActualCount);
         assertEquals("Predicted number of files is different to the actual.", tPredictedCount, tActualCount);
-    }    
-
-    @Test
-    public void testLimitTo100() throws IOException {
-        File tOutputDir = _tmp.newFolder("iiif");
-        File tImageFile = new File("images/67352ccc-d1b0-11e1-89ae-279075081939.jpg");
-
-        IIIFImage tImage = new IIIFImage(tImageFile);
-
-        ImageInfo tImageInfo = new ImageInfo(tImage, 256, 256, 4);
-        tImageInfo.fitToMaxFileNo(100);
-        _logger.debug("Managed to fit 100 files by choosing: " + tImageInfo);
-
-        int tPredictedCount = tImageInfo.calculateFileCount();
-        _logger.debug("Predicted file count: " + tPredictedCount);
-        String tVersion = InfoJson.VERSION211;
-
-        Tiler tTiler = new Tiler(tImageInfo, tVersion);
-        tTiler.generateTiles(tOutputDir);
-
-        List<String> tFiles = this.countFiles(tOutputDir);
-        /* for (String tFile : tFiles){ 
-            System.out.println(tFile);
-        }*/
-        int tActualCount = tFiles.size() + 1; // add info.json
-        _logger.debug("File count " + tActualCount);
-
-        assertEquals("Predicted number of files is different to the actual.", tPredictedCount, tActualCount);
-        assertTrue("Requested less than 100 files but got more", tActualCount < 100);
     }
 
-    @Test
-    public void testLimitTo100Large() throws IOException {
-        File tOutputDir = _tmp.newFolder("iiif");
-        File tImageFile = new File("images/van.jpg");
-
-        IIIFImage tImage = new IIIFImage(tImageFile);
-
-        ImageInfo tImageInfo = new ImageInfo(tImage, 256, 256, 4);
-        tImageInfo.fitToMaxFileNo(100);
-        _logger.debug("Managed to fit 100 files by choosing: " + tImageInfo);
-
-        int tPredictedCount = tImageInfo.calculateFileCount();
-        _logger.debug("Predicted file count: " + tPredictedCount);
-        String tVersion = InfoJson.VERSION211;
-
-        Tiler tTiler = new Tiler(tImageInfo, tVersion);
-        tTiler.generateTiles(tOutputDir);
-
-        List<String> tFiles = this.countFiles(tOutputDir);
-        /* for (String tFile : tFiles){ 
-            System.out.println(tFile);
-        }*/
-        int tActualCount = tFiles.size() + 1; // add info.json
-        _logger.debug("File count " + tActualCount);
-
-        assertEquals("Predicted number of files is different to the actual.", tPredictedCount, tActualCount);
-        assertTrue("Requested less than 100 files but got more", tActualCount < 100);
-    }
+//    @Test
+//    public void testLimitTo100() throws IOException {
+//        File tOutputDir = _tmp.newFolder("iiif");
+//        File tImageFile = new File("images/67352ccc-d1b0-11e1-89ae-279075081939.jpg");
+//
+//        IIIFImage tImage = new IIIFImage(tImageFile);
+//
+//        ImageInfo tImageInfo = new ImageInfo(tImage, 256, 256, 4);
+////        tImageInfo.fitToMaxFileNo(100);
+//        _logger.debug("Managed to fit 100 files by choosing: " + tImageInfo);
+//
+//        int tPredictedCount = tImageInfo.calculateFileCount();
+//        _logger.debug("Predicted file count: " + tPredictedCount);
+//        String tVersion = InfoJson.VERSION211;
+//
+//        Tiler tTiler = new Tiler(tImageInfo, tVersion);
+//        tTiler.generateTiles(tOutputDir);
+//
+//        List<String> tFiles = this.countFiles(tOutputDir);
+//        /* for (String tFile : tFiles){
+//            System.out.println(tFile);
+//        }*/
+//        int tActualCount = tFiles.size() + 1; // add info.json
+//        _logger.debug("File count " + tActualCount);
+//
+//        assertEquals("Predicted number of files is different to the actual.", tPredictedCount, tActualCount);
+//        assertTrue("Requested less than 100 files but got more", tActualCount < 100);
+//    }
+//
+//    @Test
+//    public void testLimitTo100Large() throws IOException {
+//        File tOutputDir = _tmp.newFolder("iiif");
+//        File tImageFile = new File("images/van.jpg");
+//
+//        IIIFImage tImage = new IIIFImage(tImageFile);
+//
+//        ImageInfo tImageInfo = new ImageInfo(tImage, 256, 256, 4);
+////        tImageInfo.fitToMaxFileNo(100);
+//        _logger.debug("Managed to fit 100 files by choosing: " + tImageInfo);
+//
+//        int tPredictedCount = tImageInfo.calculateFileCount();
+//        _logger.debug("Predicted file count: " + tPredictedCount);
+//        String tVersion = InfoJson.VERSION211;
+//
+//        Tiler tTiler = new Tiler(tImageInfo, tVersion);
+//        tTiler.generateTiles(tOutputDir);
+//
+//        List<String> tFiles = this.countFiles(tOutputDir);
+//        /* for (String tFile : tFiles){
+//            System.out.println(tFile);
+//        }*/
+//        int tActualCount = tFiles.size() + 1; // add info.json
+//        _logger.debug("File count " + tActualCount);
+//
+//        assertEquals("Predicted number of files is different to the actual.", tPredictedCount, tActualCount);
+//        assertTrue("Requested less than 100 files but got more", tActualCount < 100);
+//    }
 
 
     protected void printLevels(final List<String> pFiles) {
@@ -198,7 +198,7 @@ public class TilerTest {
         List<String> tFull = new ArrayList<String>();
         for (String tFile : pFiles) {
             if (tFile.contains("default.jpg") && !tFile.contains("full")) {
-               // System.out.println(tFile);
+                // System.out.println(tFile);
                 String[] tSplitFile = tFile.split("/");
                 String tRange = tSplitFile[tSplitFile.length - 4];
                 String tSize = tSplitFile[tSplitFile.length - 3];
@@ -228,13 +228,13 @@ public class TilerTest {
 
 
     protected List<String> countFiles(final File pDirectory) {
-       // if (pDirectory.listFiles().length > 1) {
-         //   System.out.println("Multiple " + pDirectory.getPath());
+        // if (pDirectory.listFiles().length > 1) {
+        //   System.out.println("Multiple " + pDirectory.getPath());
         //}
         List<String> tFiles = new ArrayList<String>();
         for (final File fileEntry : pDirectory.listFiles()) {
             tFiles.add(fileEntry.getPath());
-            
+
             if (fileEntry.isDirectory()) {
                 tFiles.addAll(countFiles(fileEntry));
             }

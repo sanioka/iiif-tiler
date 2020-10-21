@@ -27,3 +27,8 @@ hs_err_pid*
 
 target
 /iiif
+/iiif-*
+
+.idea/*
+iiif-tiler.iml
+input/*
